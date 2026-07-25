@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BhashaSetu - Marathi Translator & transcriber</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0b0f19">
+</head>
+<body>
+
+  <!-- QR Code Card for easy mobile access (hidden on mobile screens via CSS) -->
+  <div class="desktop-qr-card" id="qr-card" style="display: none;">
+    <div style="font-size: 2rem;">📱</div>
+    <h3>Open BhashaSetu on Mobile</h3>
+    <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0.5rem 0 1rem 0;">
+      Scan this QR code with your phone camera to instantly run this app on your Android device!
+    </p>
+    <div style="background: white; padding: 0.5rem; border-radius: 12px; display: inline-block; margin-bottom: 0.75rem;">
+      <img id="qr-image" src="" alt="QR Connection Link" style="display: block; width: 150px; height: 150px;">
+    </div>
+    <div class="qr-url" id="qr-url-text" style="font-size: 0.8rem; font-family: monospace; color: var(--color-primary); margin-bottom: 0.75rem;">Loading link...</div>
+    <p class="install-note" style="font-size: 0.8rem; color: var(--text-muted); border-top: 1px solid var(--border-color); padding-top: 0.75rem; margin-top: 0.5rem;">
+      💡 <b>Tip:</b> Once the page opens in Chrome on your phone, tap the <b>three dots menu</b> and select <b>"Add to Home Screen"</b> to install it as an app!
+    </p>
+  </div>
+
+  <!-- App Container mimicking a mobile frame for aesthetic focus -->
+  <div class="app-frame">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo">🌐</div>
+      <div class="brand">
+        <h1>BhashaSetu</h1>
+        <span class="subtitle">Marathi Translation Hub</span>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-btn active" id="tab-btn-text" onclick="switchTab('text')">
+        💬 Text Messages
+      </button>
+      <button class="nav-btn" id="tab-btn-video" onclick="switchTab('video')">
+        🎬 Video & Audio
+      </button>
+    </nav>
+
+    <!-- Content Area -->
+    <main class="app-content">
+
+      <!-- Section 1: Text Translation -->
+      <section id="sec-text" class="content-section active">
+        <div class="card">
+          <div class="input-header">
+            <span class="lang-tag">Marathi (मराठी)</span>
+            <button class="action-icon-btn" onclick="pasteFromClipboard('text-input')" title="Paste from clipboard">📋 Paste</button>
+          </div>
+          <textarea id="text-input" placeholder="मराठी संदेश येथे पेस्ट करा... (Paste Marathi message here)"></textarea>
+        </div>
+
+        <div class="control-row">
+          <div class="select-wrapper">
+            <label for="text-target-lang">Translate to:</label>
+            <select id="text-target-lang">
+              <option value="hi" selected>Hindi (हिन्दी)</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+          <button class="btn-primary" id="btn-translate-text" onclick="handleTextTranslation()">Translate ➡️</button>
+        </div>
+
+        <div class="card output-card" id="text-output-card" style="display: none;">
+          <div class="output-header">
+            <span class="lang-tag target-lang-tag" id="text-output-lang">Hindi (हिन्दी)</span>
+            <button class="action-icon-btn" onclick="copyToClipboard('text-output')" title="Copy translation">📄 Copy</button>
+          </div>
+          <div class="output-text" id="text-output">Translation will appear here...</div>
+        </div>
+      </section>
+
+      <!-- Section 2: Video & Audio Translation -->
+      <section id="sec-video" class="content-section">
+        <div class="card upload-card" id="drop-zone">
+          <div class="upload-icon">📁</div>
+          <h3>Select Video or Audio File</h3>
+          <p class="file-info">Supports MP4, MP3, WAV, MKV, M4A</p>
+          <input type="file" id="media-file-input" accept="video/*,audio/*" style="display: none;" onchange="handleFileSelect(event)">
+          <button class="btn-secondary" onclick="document.getElementById('media-file-input').click()">Browse Files</button>
+        </div>
+
+        <div class="selected-file-row" id="selected-file-container" style="display: none;">
+          <div class="file-details">
+            <span class="file-name" id="selected-file-name">filename.mp4</span>
+            <span class="file-size" id="selected-file-size">0 MB</span>
+          </div>
+          <button class="btn-danger-sm" onclick="clearSelectedFile()">Remove</button>
+        </div>
+
+        <div class="control-row" id="video-control-row">
+          <div class="select-wrapper">
+            <label for="media-target-lang">Translate to:</label>
+            <select id="media-target-lang">
+              <option value="hi" selected>Hindi (हिन्दी)</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+          <button class="btn-primary" id="btn-translate-media" onclick="handleMediaTranslation()">Process & Translate 🚀</button>
+        </div>
+
+        <!-- Processing Status/Progress -->
+        <div class="card progress-card" id="progress-container" style="display: none;">
+          <div class="spinner"></div>
+          <h4 id="progress-status">Extracting audio and transcribing...</h4>
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem; text-align: center;">
+            This may take 1-2 minutes depending on file size. Please don't close the app.
+          </p>
+        </div>
+
+        <!-- Results View -->
+        <div id="media-result-container" style="display: none; margin-top: 1rem;">
+          <!-- Live Preview Player -->
+          <div class="card preview-card">
+            <h3>Media Preview</h3>
+            <div class="media-wrapper">
+              <video id="preview-player" controls style="width: 100%; border-radius: 8px; max-height: 240px; display: none;"></video>
+              <audio id="preview-audio" controls style="width: 100%; display: none;"></audio>
+            </div>
+          </div>
+
+          <!-- Transcript & Translation List -->
+          <div class="card transcript-card">
+            <div class="transcript-header">
+              <h3>Translated Transcript</h3>
+            </div>
+            <div class="transcript-timeline" id="transcript-timeline-container">
+              <!-- Timeline items injected here -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="frontend.js"></script>
+</body>
+</html>
